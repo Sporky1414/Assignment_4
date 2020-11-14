@@ -1,29 +1,35 @@
 #include "LinkedListNode.cpp"
+#include "ListADT.h"
 
 using namespace std;
 
 template <class T>
 
-class LinkedList{
+class LinkedList: public ListADT<T> {
   private:
     LinkedListNode<T>* front;
     LinkedListNode<T>* back;
-    unsigned int size;
+    unsigned int length;
+
+    T removeFront();
+    T removeBack();
 
   public:
     LinkedList();
     ~LinkedList();
-    void insertFront(T d);
-    void insertBack(T d);
-    T removeFront();
-    T removeBack();
-    int find(T value);
-    T deletePos(int pos);
-    T removeNode(T key);
+    void prepend(T data);
+    void append(T data);
+    void insertAfter(T newData, T datapointItemBeingAddedAfter);
+    T remove(T data);
+    int searchFor(T value);
+    T valueAt(int pos);
 
-    string printList();
+    void print();
     bool isEmpty();
-    unsigned int getSize();
+    unsigned int getLength();
+
+    void printReverse();
+    void sortSelf();
 };
 
 
@@ -31,12 +37,12 @@ template <class T>
 LinkedList<T>::LinkedList() {
   front = NULL;
   back = NULL;
-  size = 0;
+  length = 0;
 }
 
 template <class T>
 LinkedList<T>::~LinkedList() {
-  for(int i = size; i >= 0; i--) {
+  for(int i = length; i >= 0; i--) {
     removeBack();
   }
   delete back;
@@ -44,29 +50,64 @@ LinkedList<T>::~LinkedList() {
 }
 
 template <class T>
-void LinkedList<T>::insertFront(T d) {
+void LinkedList<T>::prepend(T d) {
   LinkedListNode<T> *node = new LinkedListNode<T>(d);
-  if(size == 0) {
+  if(getLength() == 0) {
+    front = node;
     back = node;
   } else {
     front->prev = node;
     node->next = front;
   }
   front = node;
-  ++size;
+  ++length;
 }
 
 template <class T>
-void LinkedList<T>::insertBack(T d) {
+void LinkedList<T>::append(T d) {
   LinkedListNode<T> *node = new LinkedListNode<T>(d);
-  if(size == 0) {
+  if(getLength() == 0) {
     front = node;
+    back = node;
   } else {
     back->next = node;
     node->prev = back;
   }
   back = node;
-  ++size;
+  ++length;
+}
+
+template <class T>
+void LinkedList<T>::insertAfter(T d, T datapointItemBeingAddedAfter) {
+  int pos = this->searchFor(datapointItemBeingAddedAfter);
+  if(pos == 0) {
+    prepend(d);
+    return;
+  } else if (pos >= length - 1) {
+    append(d);
+    return;
+  } else if (pos == -1) {
+    cout <<"INVALID POSITION ENTERED. INSERTING DATA AT BACK" << endl;
+    append(d);
+    return;
+  }
+  LinkedListNode<T>* newNode = new LinkedListNode<T>(d);
+  int p = 0;
+
+  LinkedListNode<T>* curr = front;
+  LinkedListNode<T>* succ = front->next;
+
+  while(p != pos) {
+    curr = curr->next;
+    ++p;
+  }
+  succ = curr->next;
+
+  newNode->next = succ;
+  newNode->prev = curr;
+  curr->next = newNode;
+  succ->prev = newNode;
+  ++length;
 }
 
 template <class T>
@@ -86,7 +127,7 @@ T LinkedList<T>::removeFront() {
   node->next = NULL;
   T temp = node->data;
 
-  size--;
+  length--;
   delete node;
 
   return temp;
@@ -108,19 +149,46 @@ T LinkedList<T>::removeBack() {
   back = back->prev;
   node->prev = NULL;
   T temp = node->data;
-  size--;
+  length--;
   delete node;
 
   return temp;
 }
 
 template <class T>
-int LinkedList<T>::find(T value) {
+T LinkedList<T>::remove(T data) {
+  int pos = searchFor(data);
+  LinkedListNode<T>* curr = front;
+  for(int i = 0; i < pos; ++i) {
+    curr = curr->next;
+  }
+  LinkedListNode<T>* sucNode = curr->next;
+  LinkedListNode<T>* predNode = curr->prev;
+  if(sucNode != NULL) {
+    sucNode->prev = predNode;
+  }
+  if(predNode != NULL) {
+    predNode->next = sucNode;
+  }
+  if(curr == front) {
+    front = sucNode;
+  }
+  if(curr == back) {
+    back = predNode;
+  }
+  length--;
+  T temp = curr->data;
+  delete curr;
+  return temp;
+}
+
+template <class T>
+int LinkedList<T>::searchFor(T value) {
   int pos = -1;
   LinkedListNode<T> *curr = front;
 
   while (curr != NULL) {
-    //iterate until we reach the end and hopefully we find what we are looking for
+    //iterate until we reach the end and hopefully we searchFor what we are looking for
     ++pos;
     if(curr->data == value) {
       break;
@@ -135,90 +203,17 @@ int LinkedList<T>::find(T value) {
 }
 
 template <class T>
-T LinkedList<T>::deletePos(int pos) {
-  if(front == NULL) {
-    return T();
-  }
-
-  int p = 0;
+T LinkedList<T>::valueAt(int pos) {
   LinkedListNode<T> *curr = front;
-  LinkedListNode<T> *prev = front;
 
-  while(p != pos) {
-    prev = curr;
+  for(int i = 0; i < pos; ++i) {
     curr = curr->next;
-    p++;
   }
-
-  //if I make it here, found node that contiains the key.
-
-  if(curr == front) {
-    front = curr->next;
-    front->prev = NULL;
-  } else if (curr == back) {
-    back = curr->prev;
-    back->next = NULL;
-  } else {
-    //it's between front and back
-    prev->next = curr->next;
-    prev->next->prev = curr->prev;
-  }
-
-  curr->next = NULL;
-  curr->prev = NULL;
-
-  T temp = curr->data;
-  size--;
-
-  delete curr;
-  return temp;
+  return curr->data;
 }
 
 template <class T>
-T LinkedList<T>::removeNode(T key) {
-  LinkedListNode<T> *curr = front;
-
-  if(curr == NULL) {
-    return T();
-  }
-
-  //if not empty, you can leverage find() to determine if value even exists
-
-  while(curr->data != key) {
-    curr = curr->next;
-
-    if(curr == NULL) {
-      //I reached the end of my linked list and did not find the key/value
-      return T();
-    }
-  }
-
-  //if I make it here, found node that contiains the key.
-
-  if(curr == front) {
-    front = curr->next;
-    front->prev = NULL;
-  } else if (curr == back) {
-    back = curr->prev;
-    back->next = NULL;
-  } else {
-    //it's between front and back
-    curr->prev->next = curr->next;
-    curr->next->prev = curr->prev;
-  }
-
-  curr->next = NULL;
-  curr->prev = NULL;
-
-  T temp = curr->data;
-  size--;
-  delete curr;
-
-  return temp;
-}
-
-template <class T>
-string LinkedList<T>::printList() {
+void LinkedList<T>::print() {
   string returnString = "";
   LinkedListNode<T> *curr = front;
   while(curr != NULL) {
@@ -230,17 +225,62 @@ string LinkedList<T>::printList() {
       returnString +=". ";
     }
   }
-  returnString += "SIZE: " + to_string(getSize());
   delete curr;
-  return returnString;
+  cout << returnString << endl;
+}
+
+template <class T>
+void LinkedList<T>::printReverse() {
+  string returnString = "";
+  LinkedListNode<T> *curr = back;
+  while(curr != NULL) {
+    returnString += "\"" + to_string(curr->data) + "\"";
+    curr = curr->prev;
+    if(curr != NULL) {
+      returnString += ", ";
+    } else {
+      returnString +=". ";
+    }
+  }
+  delete curr;
+  cout << returnString << endl;
+}
+
+template <class T>
+void LinkedList<T>::sortSelf() {
+  T min = front->data;
+  LinkedList<T> *newList = new LinkedList<T>();
+  LinkedListNode<T> *curr = front;
+  while(front != NULL) {
+    while(curr != NULL) {
+      if(min > curr->data) {
+        min = curr->data;
+      }
+      curr = curr->next;
+    }
+    remove(min);
+    newList->append(min);
+    if(front != NULL) {
+      min = front->data;
+      curr = front;
+    }
+  }
+  newList->print();
+  curr = newList->front;
+  while(curr != NULL) {
+    append(curr->data);
+    curr = curr->next;
+  }
+  delete curr;
+  delete newList;
 }
 
 template <class T>
 bool LinkedList<T>::isEmpty() {
-  return size <= 0;
+  return length <= 0;
 }
 
 template <class T>
-unsigned int LinkedList<T>::getSize() {
-  return size;
+unsigned int LinkedList<T>::getLength() {
+  return length;
 }

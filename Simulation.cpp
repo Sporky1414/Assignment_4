@@ -29,110 +29,122 @@ Simulation::~Simulation() {
 }
 
 bool Simulation::runSimulation() {
-  int currentClockTick = 1;
-  stringstream inputConverter(inputHandler->readNextLine());
-  int nextClockTickToAddStudents = 0;
-  inputConverter >> nextClockTickToAddStudents;
-  inputConverter.clear();
-  cout << "Num of Windows: " << to_string(numOfWindows) << endl;
-  bool continueLoop = true;
-  Student *tempPointer = NULL;
   int numOfStudentsToAdd = 0;
-  while(continueLoop) {
-    cout << "CLOCK TICK: " << to_string(currentClockTick) << endl;
-    cout << "CLOCK TICK TO ADD STUDENTS: " << to_string(nextClockTickToAddStudents) << endl;
-    if(nextClockTickToAddStudents == currentClockTick) {
-      inputConverter.str(inputHandler->readNextLine());
-      inputConverter >> numOfStudentsToAdd;
-      inputConverter.clear();
-      cout << "NUM OF STUDENTS TO ADD: " << to_string(numOfStudentsToAdd) << endl;
-      int neededClockTicks = 0;
+  int currentClockTick = 1;
+  string inputFromFileString = inputHandler->readNextLine();
+  stringstream ss(inputFromFileString);
+  int nextClockTickToAddStudents = 0;
+  int prevClockTickToAddStudents = 0;
+  Student* tempPointer = NULL;
+  ss >> nextClockTickToAddStudents;
+  bool allWindowsIdle = true;
+  while(!students->isEmpty() || inputHandler->inputHasDataLeft() || !allWindowsIdle) {
+
+    //Add new students to queue
+    cout << "Clock Tick: " << to_string(currentClockTick) << endl;
+    cout << "Clock Tick To Add Students: " << to_string(nextClockTickToAddStudents) << endl;
+    if(currentClockTick == nextClockTickToAddStudents) {
+      ss.clear();
+      inputFromFileString = inputHandler->readNextLine();
+      ss.str(inputFromFileString);
+      ss >> numOfStudentsToAdd;
+      int tempClockTicksNeeded = 0;
       for(int i = 0; i < numOfStudentsToAdd; ++i) {
-        inputConverter.str(inputHandler->readNextLine());
-        inputConverter >> neededClockTicks;
-        inputConverter.clear();
-        cout << "NEEDS OF NEW STUDENT: " << neededClockTicks << endl;
-        tempPointer = new Student(neededClockTicks);
-        students->push(*tempPointer);
-        cout << "STUDENT ADDED WITH NEEDS: " << tempPointer->getClockTicksNeeded() << endl;
+        ss.clear();
+        inputFromFileString = inputHandler->readNextLine();
+        ss.str(inputFromFileString);
+        ss >> tempClockTicksNeeded;
+        Student* tempStudent = new Student(tempClockTicksNeeded);
+        students->push(*tempStudent);
+        cout << "\n";
       }
-      if(inputHandler->inputHasDataLeft()) {
-        inputConverter.str(inputHandler->readNextLine());
-        inputConverter >> nextClockTickToAddStudents;
-        inputConverter.clear();
-      }
-      cout << "AFTER STUDENTS ADDED: " << endl;;
-      students->printQueue();
-      cout << "\n\n";
+      cout << "\n";
+      ss.clear();
+      inputFromFileString = inputHandler->readNextLine();
+      ss.str(inputFromFileString);
+      prevClockTickToAddStudents = nextClockTickToAddStudents;
+      ss >> nextClockTickToAddStudents;
     }
 
+
     for(int i = 0; i < numOfWindows; ++i) {
+      cout << "WINDOW " << to_string(i) << " STATUS: ";
       if(windows[i]->isStudentPresent()) {
-        cout << "STUDENT AT WINDOW " << to_string(i) << ": " << endl;
-        windows[i]->printStudentAtWindow();
         windows[i]->incrementStudentUseTime();
         if(windows[i]->isStudentFinished()) {
-          delete windows[i]->studentLeaves();
+          cout << "\nSTUDENT HAS FINISHED" << endl;
+          windows[i]->studentLeaves();
           if(!students->isEmpty()) {
-            Student temp = (students->pop());
-            Student* tempPointer = &temp;
+            tempPointer = new Student(students->pop());
             waitTimesOfAllStudents->append(tempPointer->getWaitTime());
             windows[i]->assignStudent(tempPointer);
+            cout << "NEW STUDENT ARRIVES WITH FOLLOWING DETAILS: " << endl;
+            windows[i]->printStudentAtWindow();
+          } else {
+            cout << "NOW IS EMPTY" << endl;
           }
+        } else {
+          cout << "STUDENT REMAINS WITH FOLLOWING INFO: " << endl;
+          windows[i]->printStudentAtWindow();
         }
       } else {
         if(!students->isEmpty()) {
-          Student temp = (students->pop());
-          Student* tempPointer = &temp;
+          cout << "BEING FILLED AFTER BEING IDLE" << endl;
+          tempPointer = new Student(students->pop());
           waitTimesOfAllStudents->append(tempPointer->getWaitTime());
           windows[i]->assignStudent(tempPointer);
+          cout << "NEW STUDENT ARRIVES WITH FOLLOWING DETAILS: " << endl;
+          windows[i]->printStudentAtWindow();
         } else {
+          cout << "WINDOW STILL IDLE. ";
           windows[i]->incrementIdleTime();
+          cout << "NEW IDLE TIME: " << to_string(windows[i]->getIdleTime()) << endl;
         }
       }
     }
-    cout << "QUEUE FOR AFTER STUDENTS SENT TO WINDOWS: " << endl;;
-    students->printQueue();
-    cout << "WINDOW STATUS AFTER NEW STUDENTS SENT TO WINDOWS: " << endl;
+    int idleWindows = 0;
     for(int i = 0; i < numOfWindows; ++i) {
-      if(windows[i]->isStudentPresent()) {
-        cout <<"WINDOW " << to_string(i) << " HAS STUDENT: " << endl;
-        windows[i]->printStudentAtWindow();
-      } else {
-        cout <<"WINDOW " << to_string(i) << " IS EMPTY." << endl;
+      cout << "WINDOW " << to_string(i) << " HAS A STUDENT PRESENT: " << to_string(windows[i]->isStudentPresent()) << endl;
+      if(!windows[i]->isStudentPresent()) {
+        ++idleWindows;
       }
     }
-    cout << "\n\n";
+    if(idleWindows == numOfWindows) {
+      allWindowsIdle = true;
+    } else {
+      allWindowsIdle = false;
+    }
+    cout << "BOTH WINDOWS IDLE: " << to_string(allWindowsIdle);
 
-    Queue<Student>* temp = new Queue<Student>();
-    for(int i = 0; i < students->getLength(); ++i) {
+    Queue<Student>* tempQueue = new Queue<Student>();
+    int counter = 0;
+    while(!students->isEmpty()) {
       Student tempStudent = students->pop();
       tempPointer = &tempStudent;
-      if(i >= students->getLength() - numOfStudentsToAdd) {
+      if(currentClockTick == prevClockTickToAddStudents) {
+        if(counter < students->getLength() - numOfStudentsToAdd) {
+          tempPointer->incrementWaitTime();
+        }
+      } else {
         tempPointer->incrementWaitTime();
       }
-      temp->push(*tempPointer);
+      tempQueue->push(*tempPointer);
+      counter++;
+      tempPointer = NULL;
     }
-    students = temp;
-    cout << "AFTER WAIT TIMES INCREASED FOR QUEUE STUDENTS" << endl;;
+    while(!tempQueue->isEmpty()) {
+      Student tempStudent = tempQueue->pop();
+      tempPointer = &tempStudent;
+      students->push(*tempPointer);
+      tempPointer = NULL;
+    }
+    tempPointer = NULL;
+    delete tempQueue;
+    cout << "\nCURRENT STUDENT QUEUE: " << endl;
     students->printQueue();
     cout << "\n\n";
-
     ++currentClockTick;
-    if(!inputHandler->inputHasDataLeft() && students->isEmpty()) {
-      bool studentsPresetnAtWindows = false;
-      for(int i = 0; i < numOfWindows; ++i) {
-        if(windows[i]->isStudentPresent()) {
-          studentsPresetnAtWindows = true;
-          break;
-        }
-      }
-      if(studentsPresetnAtWindows == false) {
-        continueLoop = false;
-      }
-    }
   }
-  return true;
 }
 
 void Simulation::calculateAndReturnFinalData() {
@@ -147,10 +159,16 @@ void Simulation::calculateAndReturnFinalData() {
 
 double Simulation::meanStudentWaitTime() {
   double sum = 0;
+  int numOfZeroes = 0;
   for(int i = 0; i < waitTimesOfAllStudents->getLength(); ++i) {
-    sum += waitTimesOfAllStudents->valueAt(i);
+    int value = waitTimesOfAllStudents->valueAt(i);
+    if(value == 0) {
+      ++numOfZeroes;
+    } else {
+      sum += waitTimesOfAllStudents->valueAt(i);
+    }
   }
-  double mean = sum/waitTimesOfAllStudents->getLength();
+  double mean = sum/(waitTimesOfAllStudents->getLength() - numOfZeroes);
   return mean;
 }
 

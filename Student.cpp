@@ -15,6 +15,13 @@ Student::Student(int timeNeeded) {
   atWindow = false;
 }
 
+Student::Student(const Student &oldStudent) {
+  waitTime = oldStudent.waitTime;
+  clockTicksUsed = oldStudent.clockTicksUsed;
+  clockTicksNeeded = oldStudent.clockTicksNeeded;
+  atWindow = oldStudent.atWindow;
+}
+
 Student::~Student() {}
 
 void Student::incrementWaitTime() {

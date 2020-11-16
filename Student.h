@@ -7,6 +7,7 @@ class Student {
   public:
     Student();
     Student(int timeNeeded);
+    Student(const Student &oldStudent);
     ~Student();
 
     void incrementWaitTime();

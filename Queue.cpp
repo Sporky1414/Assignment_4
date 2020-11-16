@@ -16,7 +16,7 @@ class Queue {
     void printQueue();
 
   private:
-    LinkedList<T>* queue;
+    ListADT<T>* queue;
 };
 
 template <class T>

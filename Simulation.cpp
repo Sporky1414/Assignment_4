@@ -30,7 +30,7 @@ Simulation::~Simulation() {
 
 bool Simulation::runSimulation() {
   int numOfStudentsToAdd = 0;
-  int currentClockTick = 1;
+  int currentClockTick = 0;
   string inputFromFileString = inputHandler->readNextLine();
   stringstream ss(inputFromFileString);
   int nextClockTickToAddStudents = 0;
@@ -160,6 +160,10 @@ void Simulation::calculateAndReturnFinalData() {
 double Simulation::meanStudentWaitTime() {
   double sum = 0;
   int numOfZeroes = 0;
+  cout << "WAIT TIME LIST: " << to_string(waitTimesOfAllStudents->isEmpty()) << endl;
+  if(waitTimesOfAllStudents->isEmpty()) {
+    return 0;
+  }
   for(int i = 0; i < waitTimesOfAllStudents->getLength(); ++i) {
     int value = waitTimesOfAllStudents->valueAt(i);
     if(value == 0) {
@@ -167,6 +171,9 @@ double Simulation::meanStudentWaitTime() {
     } else {
       sum += waitTimesOfAllStudents->valueAt(i);
     }
+  }
+  if(numOfZeroes == waitTimesOfAllStudents->getLength()) {
+    return 0;
   }
   double mean = sum/(waitTimesOfAllStudents->getLength() - numOfZeroes);
   return mean;
@@ -181,15 +188,9 @@ double Simulation::meanWindowIdleTime() {
   return mean;
 }
 
-double Simulation::medianStudentWaitTime() {
-  if(waitTimesOfAllStudents->getLength() % 2 == 0) {
-    int secondPos = waitTimesOfAllStudents->getLength()/2;
-    double firstPos = secondPos - 1;
-    return (firstPos + secondPos)/2;
-  } else {
-    int midpoint = waitTimesOfAllStudents->getLength()/2;
-    return waitTimesOfAllStudents->valueAt(midpoint);
-  }
+int Simulation::medianStudentWaitTime() {
+  int midpoint = waitTimesOfAllStudents->getLength()/2;
+  return waitTimesOfAllStudents->valueAt(midpoint);
 }
 
 int Simulation::maxStudentWaitTime() {
@@ -216,7 +217,7 @@ int Simulation::maxWindowIdleTime() {
 int Simulation::studentWaitOverTenFinder() {
   int studentCounter = 0;
   for(int i = 0; i < waitTimesOfAllStudents->getLength(); ++i) {
-    if(waitTimesOfAllStudents->valueAt(i) >= 10) {
+    if(waitTimesOfAllStudents->valueAt(i) > 10) {
       ++studentCounter;
     }
   }
@@ -226,7 +227,7 @@ int Simulation::studentWaitOverTenFinder() {
 int Simulation::windowIdleTimeOverFiveFinder() {
   int windowCounter = 0;
   for(int i = 0; i < numOfWindows; ++i) {
-    if(windows[i]->getIdleTime() >= 5) {
+    if(windows[i]->getIdleTime() > 5) {
       windowCounter++;
     }
   }

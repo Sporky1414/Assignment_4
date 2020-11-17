@@ -24,7 +24,7 @@ class Simulation{
 
     double meanStudentWaitTime();
     double meanWindowIdleTime();
-    double medianStudentWaitTime();
+    int medianStudentWaitTime();
     int maxStudentWaitTime();
     int maxWindowIdleTime();
     int studentWaitOverTenFinder();

@@ -1,4 +1,5 @@
 #include "Simulation.h"
+#include <iomanip>
 
 Simulation::Simulation() {
   students = NULL;
@@ -148,13 +149,37 @@ bool Simulation::runSimulation() {
 }
 
 void Simulation::calculateAndReturnFinalData() {
-  cout << "1. Mean Student Wait Time: " << to_string(meanStudentWaitTime()) << endl;
-  cout << "2. Median Student Wait Time: " << to_string(medianStudentWaitTime()) << endl;
-  cout << "3. Longest Student Wait Time: " << to_string(maxStudentWaitTime()) << endl;
-  cout << "4. Number of Students Waiting Over Ten Minutes: " << to_string(studentWaitOverTenFinder()) << endl;
-  cout << "5. Mean Window Idle Time: " << to_string(meanWindowIdleTime()) << endl;
-  cout << "6. Longest Window Idle Time: " << to_string(maxWindowIdleTime()) << endl;
-  cout << "7. Number of Windows Idle For Over Five Minutes: " << to_string(windowIdleTimeOverFiveFinder()) << endl;
+  int precisionNum = 0;
+  double mean = meanStudentWaitTime();
+  cout << "ORIGINAL MEAN: " << mean << endl;
+  int testNum = (int) mean;
+  cout << "TEST NUM: " << testNum << endl;
+  while(testNum > 0) {
+    testNum = testNum/10;
+    ++precisionNum;
+    cout << "TEST NUM: " << testNum << endl;
+  }
+  precisionNum += 2;
+  cout << "PRECISION NUM: " << precisionNum << endl;
+  cout << "1. Mean Student Wait Time: " << setprecision(precisionNum) << mean << endl;
+  cout << "2. Median Student Wait Time: " << medianStudentWaitTime() << endl;
+  cout << "3. Longest Student Wait Time: " << maxStudentWaitTime() << endl;
+  cout << "4. Number of Students Waiting Over Ten Minutes: " << studentWaitOverTenFinder() << endl;
+  precisionNum = 0;
+  mean = meanWindowIdleTime();
+  cout << "ORIGINAL MEAN: " << mean << endl;
+  testNum = (int) mean;
+  cout << "TEST NUM: " << testNum << endl;
+  while(testNum > 0) {
+    testNum = testNum/10;
+    ++precisionNum;
+    cout << "TEST NUM: " << testNum << endl;
+  }
+  precisionNum += 2;
+  cout << "PRECISION NUM: " << precisionNum << endl;
+  cout << "5. Mean Window Idle Time: " << setprecision(precisionNum) << mean << endl;
+  cout << "6. Longest Window Idle Time: " << maxWindowIdleTime() << endl;
+  cout << "7. Number of Windows Idle For Over Five Minutes: " << windowIdleTimeOverFiveFinder() << endl;
 }
 
 double Simulation::meanStudentWaitTime() {

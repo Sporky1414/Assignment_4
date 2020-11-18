@@ -3,7 +3,7 @@
   Student ID: 2316808
   Class Name: CPSC 350: Data Structures and Algorithms
   Class Section: 2
-  Assignment Name: Assignment 3
+  Assignment Name: Assignment 4
 */
 
 #include <iostream>
@@ -33,6 +33,9 @@ class FileIO {
   private:
     //Gets the file path/name from the user for the input file.
     string getInputFilePathFromUser();
+
+    //Confirms file is valid and in the correct format
+    bool isInputFileValid();
 
     //Strings containing the file path of the input file.
     string inputFilePath;

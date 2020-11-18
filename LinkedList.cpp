@@ -5,30 +5,49 @@ using namespace std;
 
 template <class T>
 
+//A template class implementing the Linked List data structure, with it being subclass of the ListADT.
 class LinkedList: public ListADT<T> {
   private:
+    //Pointer nodes to the front and back nodes of the linked list.
     LinkedListNode<T>* front;
     LinkedListNode<T>* back;
+    //Integer value of how many nodes are present in the list.
     unsigned int length;
 
+    //Removes the front and back nodes from the Linked List.
     T removeFront();
     T removeBack();
 
   public:
+    //Constructor/Destructor for the LinkedList.
     LinkedList();
     ~LinkedList();
+
+    //Adds the given data to the front of the list.
     void prepend(T data);
+    //Adds the given data to the back of the list.
     void append(T data);
+    //Adds the new data after the given datapoint.
     void insertAfter(T newData, T datapointItemBeingAddedAfter);
+    //Removes the given data from the linked list.
     T remove(T data);
+
+    //Returns the position currently storing the given data.
     int searchFor(T value);
+    //Returns the data stored at the given position of the linked list.
     T valueAt(int pos);
 
+    //Prints the linked list data.
     void print();
+    //Prints the linked list data, but in reverse.
+    void printReverse();
+
+    //Returns if the linked list is empty (or length == 0)
     bool isEmpty();
+    //Returns the value of length.
     unsigned int getLength();
 
-    void printReverse();
+    //Sorts the data of the linked list.
     void sortSelf();
 };
 
